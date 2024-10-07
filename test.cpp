@@ -4,7 +4,7 @@
 std::atomic<int> sum = 0;
 int main()
 {
-     ThreadPool t(16, true);
+     ThreadPool t(0);
      auto start = std::chrono::system_clock::now();
 
      for (int i = 0; i < 100000; ++i)

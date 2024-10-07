@@ -61,12 +61,13 @@ public:
      *
      * threadCount会被限制在[m_minThreads,m_maxThreads]范围内
      *
-     * @param threadCount  线程池大小，默认为当前可用的并发线程数量(物理核心数)
+     * @param threadCount  线程池大小，0表示使用物理核心数
      * @param managerRunning  是否启用线程池大小动态调整，默认为false，表示不启用
      */
-    explicit ThreadPool(size_t threadCount = std::thread::hardware_concurrency(), bool managerRunning = false)
+    explicit ThreadPool(size_t threadCount, bool managerRunning = false)
         : m_running(true)
     {
+        threadCount = threadCount == 0 ? std::thread::hardware_concurrency() : threadCount;
         if (threadCount < m_minThreads)
             threadCount = m_minThreads;
         else if (threadCount > m_maxThreads)
