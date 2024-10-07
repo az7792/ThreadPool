@@ -261,8 +261,9 @@ private:
      *
      * 添加的线程数不会超过m_maxThreads
      */
-    void addWorkers(size_t threadCount, bool isTemp = false)
+    bool addWorkers(size_t threadCount, bool isTemp = false)
     {
+        int addNum = 0;
         if (isTemp) // 增加临时线程
         {
             std::lock_guard<std::mutex> tempLock(m_tempMutex);
@@ -271,6 +272,7 @@ private:
                 std::thread t([this]()
                               { tempWorker(); });
                 m_tempWorkers.emplace(t.get_id(), std::move(t));
+                ++addNum;
             }
         }
         else // 增加常驻线程
@@ -281,8 +283,10 @@ private:
                 std::thread t([this]()
                               { worker(); });
                 m_workers.emplace_back(std::move(t));
+                ++addNum;
             }
         }
+        return addNum > 0;
     }
 
     /**
@@ -312,12 +316,12 @@ private:
         while (m_running)
         {
             std::unique_lock<std::mutex> lock(m_managerMutex);
-            // 设置最大等待时间为 5 秒
-            auto waitTime = std::chrono::seconds(5);
+            // 设置最大等待时间为 2 秒
+            auto waitTime = std::chrono::seconds(2);
             auto now = std::chrono::system_clock::now();
             auto timeout = now + waitTime;
 
-            // 距离上次扩容超过1秒 | 任务队列长度为线程池大小的两倍 | 线程池停止
+            // 距离上次扩容超过1秒 | 任务队列长度为线程池大小的两倍 | 线程池停止 | 超时
             bool wasNotified = m_managerCV.wait_until(lock, timeout, [this, &lastScaleUp]()
                                                       {
                                                       auto now = std::chrono::system_clock::now();
@@ -327,23 +331,20 @@ private:
             if (!m_running)
                 return;
 
-            if (!wasNotified) // 超时通知，因此不需要扩容
+            while (!m_threadExitQueue.empty())
             {
-                while (!m_threadExitQueue.empty())
-                {
-                    std::thread t;
-                    m_threadExitQueue.pop(t);
-                    if (t.joinable())
-                        t.join();
-                }
-                continue;
+                std::thread t;
+                m_threadExitQueue.pop(t);
+                if (t.joinable())
+                    t.join();
             }
 
             // 扩容出m_workers.size()数量的临时线程
             if (m_tasks.size() >= 2 * m_workers.size())
             {
-                addWorkers(m_workers.size(), true);
-                lastScaleUp = std::chrono::system_clock::now(); // 更新上一次扩容的时间
+                bool ok = addWorkers(m_workers.size(), true);
+                if (ok)                                             // 有效扩容
+                    lastScaleUp = std::chrono::system_clock::now(); // 更新上一次扩容的时间
             }
         }
     }
