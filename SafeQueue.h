@@ -42,24 +42,24 @@ public:
         m_queue.pop_back();
     }
 
-    // try pop并返回pop结果,pop失败返回std::nullopt
-    std::optional<T> try_pop_front()
+    // try pop并返回pop结果
+    bool try_pop_front(T &value)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_queue.empty())
-            return std::nullopt;
-        T &&value = std::move(m_queue.front());
+            return false;
+        value = std::move(m_queue.front());
         m_queue.pop_front();
-        return std::move(value);
+        return true;
     }
-    std::optional<T> try_pop_back()
+    bool try_pop_back(T &value)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_queue.empty())
-            return std::nullopt;
-        T &&value = std::move(m_queue.back());
+            return false;
+        value = std::move(m_queue.back());
         m_queue.pop_back();
-        return std::move(value);
+        return true;
     }
 
     T &front()
