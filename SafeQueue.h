@@ -13,8 +13,8 @@ public:
      * @brief 将元素添加到队列
      *
      * @param Args 参数，使用方式与 std::deque 一致
-     * T 类型的左值引用 会采用拷贝构造
-     * T 类型的右值引用 会采用移动构造
+     * T 类型的左值     会采用拷贝构造
+     * T 类型的右值     会采用移动构造
      * T 类型的构造参数 会采用原地构造
      */
     template <typename... Args>
@@ -73,13 +73,13 @@ public:
         return m_queue.back();
     }
 
-    std::size_t size() const
+    std::size_t size()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         return m_queue.size();
     }
 
-    bool empty() const
+    bool empty()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         return m_queue.empty();
