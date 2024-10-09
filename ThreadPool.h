@@ -13,6 +13,7 @@
 #include <vector>
 #include <functional>
 #include <future>
+#include <atomic>
 class ThreadPool
 {
      // 线程池运行状态
@@ -25,6 +26,7 @@ class ThreadPool
      std::deque<std::function<void()>> m_managerTasks;
 
      // 每个线程单独一条队列，单独一个条件变量 ，单独一把锁
+     int threadCount; // 线程数
      std::vector<std::thread> m_workers;
      std::vector<std::unique_ptr<std::mutex>> m_mutexs; // 锁m_runnings[index]，*m_tasks[index]， *m_CVs[index]
      std::vector<bool> m_runnings;
@@ -32,8 +34,8 @@ class ThreadPool
      std::vector<std::deque<std::function<void()>>> m_tasks;
 
      // 最大最小线程数
-     const unsigned int m_maxThreads = std::max(128u, 2 * std::thread::hardware_concurrency());
-     const unsigned int m_minThreads = 1u;
+     const int m_maxThreads = std::max(128, 2 * static_cast<int>(std::thread::hardware_concurrency()));
+     const int m_minThreads = 1;
 
 public:
      ThreadPool(const ThreadPool &other) = delete;            // 禁止拷贝构造
@@ -48,25 +50,25 @@ public:
       *
       * @param threadCount  线程池大小，0表示使用物理核心数
       */
-     explicit ThreadPool(size_t threadCount)
+     explicit ThreadPool(int threadCt)
          : m_running(true)
      {
           // 调整线程数到合适范围
-          threadCount = threadCount == 0 ? std::thread::hardware_concurrency() : threadCount;
+          threadCount = threadCt == 0 ? std::thread::hardware_concurrency() : threadCt;
           if (threadCount < m_minThreads)
                threadCount = m_minThreads;
           else if (threadCount > m_maxThreads)
                threadCount = m_maxThreads;
 
           m_runnings.resize(threadCount, true), m_tasks.resize(threadCount);
-          for (size_t i = 0; i < threadCount; ++i) // threadCount在构造函数中已经被限定
+          for (int i = 0; i < threadCount; ++i) // threadCount在构造函数中已经被限定
           {
                // mutex , condition_variable 不可复制不可移动
                m_mutexs.emplace_back(std::make_unique<std::mutex>());
                m_CVs.emplace_back(std::make_unique<std::condition_variable>());
           }
 
-          for (size_t i = 0; i < threadCount; ++i)
+          for (int i = 0; i < threadCount; ++i)
                m_workers.emplace_back(&ThreadPool::worker, this, i); // 不能合并到上面的循环
           m_manager = std::thread(&ThreadPool::manager, this);
      }
@@ -157,12 +159,6 @@ private:
           {
                // wait会先判断谓词是否满足
                std::unique_lock<std::mutex> lock(*m_mutexs[index]);
-               // 等待直到 有任务可用 | 线程需要停止
-               (*m_CVs[index]).wait(lock, [this, index]()
-                                    { return !m_tasks[index].empty() || !m_runnings[index]; });
-               if (!m_runnings[index] && m_tasks[index].empty()) // 没任务且线程需要停止时退出
-                    return;
-
                if (!m_tasks[index].empty())
                {
                     task = std::move(m_tasks[index].front());
@@ -170,12 +166,31 @@ private:
                     lock.unlock();
 
                     task();
+                    continue;
                }
                else
                {
+                    lock.unlock();
                     // 尝试去其他任务队列拿任务
                     // 可以拿自己的任务
+                    for (int i = 0; i < threadCount; ++i)
+                    {
+                         std::unique_lock<std::mutex> otherLock(*m_mutexs[i]);
+                         if (m_tasks[i].empty())
+                              continue;
+                         task = std::move(m_tasks[i].back());
+                         m_tasks[i].pop_back();
+                         otherLock.unlock();
+                         task();
+                         break;
+                    }
                }
+               lock.lock();
+               // 等待直到 有任务可用 | 线程需要停止
+               (*m_CVs[index]).wait(lock, [this, index]()
+                                    { return !m_tasks[index].empty() || !m_runnings[index]; });
+               if (!m_runnings[index] && m_tasks[index].empty()) // 没任务且线程需要停止时退出
+                    return;
           }
      }
 
@@ -186,7 +201,7 @@ private:
       */
      void manager()
      {
-          int nowIndex = 0, nextIndex, maxIndex = m_workers.size();
+          int nowIndex = 0, nextIndex;
           std::function<void()> task;
           while (true)
           {
@@ -202,7 +217,7 @@ private:
                     lock.unlock();
 
                     // 分配任务
-                    if (maxIndex == 1) // 只有一个线程时直接分配任务
+                    if (threadCount == 1) // 只有一个线程时直接分配任务
                     {
                          std::unique_lock<std::mutex> nowLock(*m_mutexs[nowIndex]);
                          m_tasks[nowIndex].emplace_back(std::move(task));
@@ -210,7 +225,7 @@ private:
                          continue;
                     }
                     nextIndex = nowIndex + 1;
-                    if (nextIndex == maxIndex)
+                    if (nextIndex == threadCount)
                          nextIndex = 0;
                     // 在当前队列与下一个队列之间优先选择任务数较小的那个队列
                     {
@@ -234,7 +249,7 @@ private:
           }
 
           // 通知工作线程准备退出
-          for (int i = 0; i < maxIndex; ++i)
+          for (int i = 0; i < threadCount; ++i)
           {
                {
                     std::unique_lock<std::mutex> lock(*m_mutexs[i]);
