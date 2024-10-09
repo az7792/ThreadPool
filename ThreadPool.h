@@ -202,6 +202,13 @@ private:
                     lock.unlock();
 
                     // 分配任务
+                    if (maxIndex == 1) // 只有一个线程时直接分配任务
+                    {
+                         std::unique_lock<std::mutex> nowLock(*m_mutexs[nowIndex]);
+                         m_tasks[nowIndex].emplace_back(std::move(task));
+                         (*m_CVs[nowIndex]).notify_one();
+                         continue;
+                    }
                     nextIndex = nowIndex + 1;
                     if (nextIndex == maxIndex)
                          nextIndex = 0;

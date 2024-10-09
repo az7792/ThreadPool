@@ -35,10 +35,10 @@ void calculatePrimes(int start, int end, int &primeCount)
 }
 int main()
 {
-    ThreadPool t(16);
+    ThreadPool t(1);
     auto start = std::chrono::system_clock::now();
     std::vector<std::future<void>> arr;
-    for (int i = 0; i < 100000; ++i)
+    for (int i = 0; i < 10000; ++i)
     {
         arr.push_back(t.submit([]()
                                { int ans  =0;
