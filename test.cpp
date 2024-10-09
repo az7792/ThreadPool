@@ -33,49 +33,18 @@ void calculatePrimes(int start, int end, int &primeCount)
         }
     }
 }
-ThreadPool t(16);
-void show()
-{
-    while (t.isRunning())
-    {
-        for (auto v : t.num)
-            std::cout << v << " ";
-        std::cout << "end\n";
-        for (auto v : t.num)
-            std::cout << v << " ";
-        std::cout << "A\n";
-        for (auto &v : t.m_tasks)
-            std::cout << v.size() << " ";
-        std::cout << "B\n";
-        std::cout << t.m_managerTasks.size() << "C\n";
-        // for (auto &v : t.m_tasks)
-        //     std::cout << v.size() << " ";
-        // std::cout << "\n";
-        std::cout << "runnuing:" << t.isRunning() << "\n";
-        // std::cout << t.m_managerTasks.size() << "end\n";
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-    for (auto v : t.num)
-        std::cout << v << " ";
-    std::cout << "A\n";
-    for (auto &v : t.m_tasks)
-        std::cout << v.size() << " ";
-    std::cout << "B\n";
-    std::cout << t.m_managerTasks.size() << "C\n";
-    std::cout << t.isRunning() << "D\n";
-}
 int main()
 {
-    // std::thread Tt(show);
+    ThreadPool t(16);
     auto start = std::chrono::system_clock::now();
     std::vector<std::future<void>> arr;
-    for (int i = 0; i < 1000000; ++i)
+    for (int i = 0; i < 100000; ++i)
     {
-        // arr.push_back(t.submit([]()
-        //                        { int ans  =0;
-        //       calculatePrimes(1,10000,ans); }));
         arr.push_back(t.submit([]()
-                               { sum++; }));
+                               { int ans  =0;
+               calculatePrimes(1,10000,ans); }));
+        // arr.push_back(t.submit([]()
+        //                        { sum++; }));
     }
     t.close();
     for (auto &v : arr)
@@ -86,8 +55,5 @@ int main()
     std::chrono::duration<double> diff = end - start;
     auto diff_in_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
     std::cout << "Time difference: " << diff_in_millis << " ms" << std::endl;
-
-    // if (Tt.joinable())
-    //     Tt.join();
     return 0;
 }
