@@ -21,10 +21,9 @@ bool isPrime(int n)
 }
 
 // 计算密集型函数：在一个范围内计算素数
-void calculatePrimes(int start, int end, int &primeCount)
+void calculatePrimes(int start, int end)
 {
-    sum++;
-    primeCount = 0;
+    int primeCount = 0;
     for (int i = start; i <= end; ++i)
     {
         if (isPrime(i))
@@ -35,25 +34,36 @@ void calculatePrimes(int start, int end, int &primeCount)
 }
 int main()
 {
-    ThreadPool t(1);
-    auto start = std::chrono::system_clock::now();
-    std::vector<std::future<void>> arr;
-    for (int i = 0; i < 10000; ++i)
+    auto start2 = std::chrono::system_clock::now();
+    int n = 1e5;
+    ThreadPool t(16);
+
+    std::function<void()> task = []()
     {
-        arr.push_back(t.submit([]()
-                               { int ans  =0;
-               calculatePrimes(1,10000,ans); }));
-        // arr.push_back(t.submit([]()
-        //                        { sum++; }));
-    }
+        for (int i = 0; i < 10; ++i)
+            sum++;
+        // calculatePrimes(1, 10000);
+    };
+
+    auto start1 = std::chrono::system_clock::now();
+    // for (int i = 0; i < n; ++i)
+    //     task();
+    auto end1 = std::chrono::system_clock::now();
+
+    std::vector<std::future<void>> arr;
+
+    for (int i = 0; i < n; ++i)
+        t.submit(task);
     t.close();
-    for (auto &v : arr)
-        v.get();
-    auto end = std::chrono::system_clock::now();
+    auto end2 = std::chrono::system_clock::now();
+
     // 计算时间差并转换为毫秒
     std::cout << "sum:" << sum << "\n";
-    std::chrono::duration<double> diff = end - start;
-    auto diff_in_millis = std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
-    std::cout << "Time difference: " << diff_in_millis << " ms" << std::endl;
+    std::chrono::duration<double> diff1 = end1 - start1;
+    std::chrono::duration<double> diff2 = end2 - start2;
+    auto diff_in_millis1 = std::chrono::duration_cast<std::chrono::milliseconds>(diff1).count();
+    auto diff_in_millis2 = std::chrono::duration_cast<std::chrono::milliseconds>(diff2).count();
+    std::cout << "one thread:" << diff_in_millis1 << " ms" << std::endl;
+    std::cout << "thread pool: " << diff_in_millis2 << " ms" << std::endl;
     return 0;
 }
