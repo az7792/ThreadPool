@@ -77,8 +77,11 @@ int main()
 ### 测试
 
 测试环境(Windows)：Windows 11 专业版 23H2  
-测试环境(Linux)：Ubuntu-22.04 By Windows Subsystem for Linux (WSL)  
+测试环境(Linux)：Ubuntu-22.04 By Windows Subsystem for Linux (WSL) 
 CPU：16核 :AMD Ryzen 7 5800H with Radeon Graphics   3.20 GHz  
+
+**\*Linux 测试结果仅供参考**
+
 #### 复杂任务测试：
 
 **任务：**
@@ -103,22 +106,22 @@ CPU：16核 :AMD Ryzen 7 5800H with Radeon Graphics   3.20 GHz
 **Linux：**  
 |Threads|100 tasks|1000 tasks|10000 tasks|100000 tasks|1000000 tasks|
 |:---:|:---:|:---:|:---:|:---:|:---:|
-1(noPool)|2ms|25ms|245ms|2504ms|24761ms|
-|1|3ms|26ms|260ms|2644ms|26175ms|
-|2|1ms|13ms|133ms|1414ms|14567ms|
-|4|1ms|7ms|225ms|671ms|7220ms|
-|8|1ms|244ms|49ms|497ms|4850ms|
-|16|2ms|13ms|125ms|1068ms|4590ms|
+1(noPool)|2ms|24ms|232ms|2301ms|23512ms|
+|1|2ms|25ms|248ms|2477ms|24501ms|
+|2|1ms|14ms|204ms|1257ms|12501ms|
+|4|1ms|6ms|64ms|646ms|7322ms|
+|8|1ms|5ms|46ms|455ms|4090ms|
+|16|2ms|14ms|144ms|1295ms|12915ms|
 
 **Windows：**  
 |Threads|100 tasks|1000 tasks|10000 tasks|100000 tasks|1000000 tasks|
 |:---:|:---:|:---:|:---:|:---:|:---:|
-1(noPool)|4ms|41ms|485ms|4864ms|49809ms|
-|1|8ms|55ms|495ms|5109ms|51289ms|
-|2|0ms|31ms|315ms|2970ms|29187ms|
-|4|0ms|14ms|156ms|1570ms|15521ms|
-|8|0ms|13ms|78ms|810ms|8037ms|
-|16|0ms|0ms|48ms|462ms|4757ms|
+1(noPool)|0ms|42ms|386ms|4001ms|38986ms|
+|1|0ms|31ms|410ms|4031ms|40360ms|
+|2|0ms|32ms|285ms|2842ms|28155ms|
+|4|15ms|15ms|141ms|1520ms|15428ms|
+|8|0ms|16ms|79ms|788ms|8024ms|
+|16|0ms|0ms|39ms|472ms|4898ms|
 
 
 #### 简单任务测试：
@@ -133,22 +136,22 @@ sum++;
 **Linux：**  
 |Threads|100 tasks|1000 tasks|10000 tasks|100000 tasks|1000000 tasks|10000000 tasks|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-1(noPool)|0ms|0ms|0ms|1ms|17ms|157ms|
-|1|0ms|2ms|16ms|182ms|1727ms|17476ms|
-|2|0ms|698ms|64ms|414ms|3865ms|38648ms|
-|4|0ms|9ms|86ms|682ms|6521ms|64110ms|
-|8|1ms|12ms|114ms|997ms|9839ms|98430ms|
-|16|1ms|13ms|114ms|937ms|9171ms|91766ms|
+1(noPool)|0ms|0ms|0ms|1ms|16ms|148ms|
+|1|0ms|3ms|35ms|265ms|2546ms|25446ms|
+|2|0ms|7ms|83ms|769ms|7584ms|78814ms|
+|4|1ms|9ms|102ms|904ms|9107ms|92909ms|
+|8|1ms|13ms|120ms|1120ms|11096ms|110046ms|
+|16|1ms|15ms|147ms|1148ms|11073ms|110203ms|
 
 **Windows：**  
 |Threads|100 tasks|1000 tasks|10000 tasks|100000 tasks|1000000 tasks|10000000 tasks|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|1(noPool)|0ms|0ms|0ms|1ms|14ms|133ms|
-|1|0ms|0ms|15ms|190ms|1919ms|22629ms|
-|2|0ms|0ms|30ms|314ms|3154ms|31944ms|
-|4|0ms|0ms|19ms|235ms|2369ms|23955ms|
-|8|0ms|13ms|17ms|175ms|1851ms|18402ms|
-|16|10ms|3ms|19ms|192ms|1918ms|19587ms|
+1(noPool)|0ms|0ms|0ms|0ms|15ms|131ms|
+|1|0ms|0ms|29ms|216ms|2235ms|23729ms|
+|2|0ms|11ms|41ms|420ms|4302ms|43066ms|
+|4|0ms|3ms|29ms|305ms|3037ms|30185ms|
+|8|0ms|3ms|31ms|296ms|3026ms|30181ms|
+|16|0ms|5ms|30ms|303ms|3027ms|30301ms|
 
 
 
