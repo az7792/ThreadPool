@@ -77,12 +77,10 @@ int main()
 ### 测试
 
 测试环境(Windows)：Windows 11 专业版 23H2  
-测试环境(Linux)：Ubuntu-22.04 By Windows Subsystem for Linux (WSL) 
+测试环境(Linux)：Ubuntu-22.04 By Windows Subsystem for Linux (WSL)  
 CPU：16核 :AMD Ryzen 7 5800H with Radeon Graphics   3.20 GHz  
 
 **\*Linux 测试结果仅供参考**
-
-#### 复杂任务测试：
 
 **任务：**
 
@@ -122,36 +120,3 @@ CPU：16核 :AMD Ryzen 7 5800H with Radeon Graphics   3.20 GHz
 |4|15ms|15ms|141ms|1520ms|15428ms|
 |8|0ms|16ms|79ms|788ms|8024ms|
 |16|0ms|0ms|39ms|472ms|4898ms|
-
-
-#### 简单任务测试：
-
-**任务：**
-
-```c++
-sum++;
-```
-
-**结果(第一行测试结果为非线程池版本)：**  
-**Linux：**  
-|Threads|100 tasks|1000 tasks|10000 tasks|100000 tasks|1000000 tasks|10000000 tasks|
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-1(noPool)|0ms|0ms|0ms|1ms|16ms|148ms|
-|1|0ms|3ms|35ms|265ms|2546ms|25446ms|
-|2|0ms|7ms|83ms|769ms|7584ms|78814ms|
-|4|1ms|9ms|102ms|904ms|9107ms|92909ms|
-|8|1ms|13ms|120ms|1120ms|11096ms|110046ms|
-|16|1ms|15ms|147ms|1148ms|11073ms|110203ms|
-
-**Windows：**  
-|Threads|100 tasks|1000 tasks|10000 tasks|100000 tasks|1000000 tasks|10000000 tasks|
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-1(noPool)|0ms|0ms|0ms|0ms|15ms|131ms|
-|1|0ms|0ms|29ms|216ms|2235ms|23729ms|
-|2|0ms|11ms|41ms|420ms|4302ms|43066ms|
-|4|0ms|3ms|29ms|305ms|3037ms|30185ms|
-|8|0ms|3ms|31ms|296ms|3026ms|30181ms|
-|16|0ms|5ms|30ms|303ms|3027ms|30301ms|
-
-
-
